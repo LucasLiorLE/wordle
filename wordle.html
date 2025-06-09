@@ -553,7 +553,7 @@
             createKeyboard();
         }
 
-        fetch("http://ro-premium.pylex.xyz:9761/api/wordle-words")
+        fetch("https://cors-anywhere.herokuapp.com/http://ro-premium.pylex.xyz:9761/api/wordle-words")
             .then(res => res.json())
             .then(data => {
                 WORDS = data.map(w => w.toUpperCase());
