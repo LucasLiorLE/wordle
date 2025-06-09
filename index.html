@@ -93,10 +93,44 @@
             border-color: #b59f3b;
             color: #fff;
         }
-        .cell.absent {
-            background: #3a3a3c;
-            border-color: #3a3a3c;
-            color: #888;
+        /* Colorblind mode board colors */
+        body.colorblind-mode .cell.correct {
+            background: #1976d2 !important;
+            border-color: #1976d2 !important;
+            color: #fff !important;
+        }
+        body.colorblind-mode .cell.present {
+            background: #ff9800 !important;
+            border-color: #ff9800 !important;
+            color: #fff !important;
+        }
+        /* Colorblind mode keyboard colors */
+        body.colorblind-mode .key.correct {
+            background: #1976d2 !important;
+            color: #fff !important;
+        }
+        body.colorblind-mode .key.present {
+            background: #ff9800 !important;
+            color: #fff !important;
+        }
+        /* Light mode + colorblind mode */
+        body.light-mode.colorblind-mode .cell.correct {
+            background: #2196f3 !important;
+            border-color: #2196f3 !important;
+            color: #fff !important;
+        }
+        body.light-mode.colorblind-mode .cell.present {
+            background: #ffb300 !important;
+            border-color: #ffb300 !important;
+            color: #fff !important;
+        }
+        body.light-mode.colorblind-mode .key.correct {
+            background: #2196f3 !important;
+            color: #fff !important;
+        }
+        body.light-mode.colorblind-mode .key.present {
+            background: #ffb300 !important;
+            color: #fff !important;
         }
         #message {
             min-height: 24px;
@@ -175,6 +209,7 @@
             background: #3a3a3c !important;
             color: #888 !important;
         }
+        /* Light mode styles */
         body.light-mode {
             background: #f7f7fa;
             color: #181a1b;
@@ -233,6 +268,68 @@
             background: #d3d6da !important;
             color: #888 !important;
         }
+        /* legend styles for the color thingys */
+        #color-legend {
+            font-size: 1rem;
+            margin-top: 0.5rem;
+            user-select: none;
+        }
+        .legend-color {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 2px solid #222;
+            margin-right: 0.5rem;
+        }
+        .legend-correct {
+            background: #538d4e;
+            border-color: #538d4e;
+        }
+        .legend-present {
+            background: #b59f3b;
+            border-color: #b59f3b;
+        }
+        .legend-absent {
+            background: #3a3a3c;
+            border-color: #3a3a3c;
+        }
+        body.light-mode .legend-correct {
+            background: #6aaa64;
+            border-color: #6aaa64;
+        }
+        body.light-mode .legend-present {
+            background: #c9b458;
+            border-color: #c9b458;
+        }
+        body.light-mode .legend-absent {
+            background: #d3d6da;
+            border-color: #d3d6da;
+        }
+        body.colorblind-mode .legend-correct {
+            background: #1976d2 !important;
+            border-color: #1976d2 !important;
+        }
+        body.colorblind-mode .legend-present {
+            background: #ff9800 !important;
+            border-color: #ff9800 !important;
+        }
+        body.colorblind-mode .legend-absent {
+            background: #3a3a3c !important;
+            border-color: #3a3a3c !important;
+        }
+        body.light-mode.colorblind-mode .legend-correct {
+            background: #2196f3 !important;
+            border-color: #2196f3 !important;
+        }
+        body.light-mode.colorblind-mode .legend-present {
+            background: #ffb300 !important;
+            border-color: #ffb300 !important;
+        }
+        body.light-mode.colorblind-mode .legend-absent {
+            background: #d3d6da !important;
+            border-color: #d3d6da !important;
+        }
         @media (max-width: 600px) {
             .wordle-board {
                 max-width: 98vw;
@@ -258,23 +355,55 @@
                 font-size: 0.95em;
             }
         }
+        @media (max-width: 900px) {
+            #color-legend {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container py-4">
         <h1 class="text-center mb-4 fw-bold display-6">5 letter game because i dont wanna get striked</h1>
-        <div class="wordle-board shadow-sm" id="board"></div>
+        <div class="d-flex justify-content-center align-items-start">
+            <div class="wordle-board shadow-sm" id="board"></div>
+            <!-- color legend for user to kno what the colors mean lol -->
+            <div id="color-legend" class="ms-4 d-none d-md-flex flex-column align-items-start" style="min-width:120px;">
+                <div class="legend-item mb-2 d-flex align-items-center">
+                    <span class="legend-color legend-correct me-2"></span>
+                    <span>= correct spot</span>
+                </div>
+                <div class="legend-item mb-2 d-flex align-items-center">
+                    <span class="legend-color legend-present me-2"></span>
+                    <span>= in word</span>
+                </div>
+                <div class="legend-item d-flex align-items-center">
+                    <span class="legend-color legend-absent me-2"></span>
+                    <span>= not in word</span>
+                </div>
+            </div>
+        </div>
         <div id="message"></div>
+        <!-- Play Again button -->
+        <div class="text-center mt-2">
+            <button id="playAgainBtn" class="btn btn-primary" style="display:none;">Play Again</button>
+        </div>
         <div id="keyboard" class="keyboard"></div>
         <div class="d-flex justify-content-center mt-3">
-            <div class="form-check form-switch">
+            <div class="form-check form-switch me-3">
                 <input class="form-check-input" type="checkbox" id="themeSwitch">
                 <label class="form-check-label" for="themeSwitch" id="themeSwitchLabel">Light Mode</label>
+            </div>
+            <!-- Colorblind mode toggle for peeps who need it -->
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="colorblindSwitch">
+                <label class="form-check-label" for="colorblindSwitch" id="colorblindSwitchLabel">Colorblind Mode</label>
             </div>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // --- Fetch word list dynamically from backend, hope it works lol ---
         let WORDS = [];
         let ANSWER = "";
         const MAX_ROWS = 6;
@@ -286,7 +415,7 @@
         let guesses = Array.from({length: MAX_ROWS}, () => Array(WORD_LENGTH).fill(''));
         let locked = false;
 
-        // Initialize board
+        // Setup the board with empty cells
         const boardDiv = document.getElementById('board');
         for (let r = 0; r < MAX_ROWS; r++) {
             const rowDiv = document.createElement('div');
@@ -303,6 +432,7 @@
         }
 
         let messageTimeout = null;
+        // show a message to the user for a bit, then hide it
         function showMessage(msg, color = "#fff") {
             const msgDiv = document.getElementById('message');
             msgDiv.textContent = msg;
@@ -318,18 +448,21 @@
             }
         }
 
+        // checks the guess and returns an array of result strings
         function checkGuess(guess) {
             let result = Array(WORD_LENGTH).fill('absent');
             let answerArr = ANSWER.split('');
             let guessArr = guess.split('');
 
+            // first pass: check for correct letters in right spot
             for (let i = 0; i < WORD_LENGTH; i++) {
                 if (guessArr[i] === answerArr[i]) {
                     result[i] = 'correct';
-                    answerArr[i] = null; 
+                    answerArr[i] = null; // Mark as used
                     guessArr[i] = null;
                 }
             }
+            // second pass: check for present letters (wrong spot)
             for (let i = 0; i < WORD_LENGTH; i++) {
                 if (guessArr[i] && answerArr.includes(guessArr[i])) {
                     result[i] = 'present';
@@ -339,8 +472,10 @@
             return result;
         }
 
+        // Track key states for coloring the keyboard
         const keyStates = {};
 
+        // update the keyboard colors based on guesses so far
         function updateKeyboardColors() {
             document.querySelectorAll('.key').forEach(btn => {
                 const key = btn.getAttribute('data-key').toUpperCase();
@@ -351,6 +486,7 @@
             });
         }
 
+        // update the state for a key, only upgrade never downgrade
         function updateKeyState(letter, result) {
             const priority = { 'correct': 3, 'present': 2, 'absent': 1 };
             if (!keyStates[letter] || priority[result] > priority[keyStates[letter]]) {
@@ -358,6 +494,7 @@
             }
         }
 
+        // animates a cell when revealing result
         function animateCell(cell, delay, resultClass, letter) {
             setTimeout(() => {
                 cell.classList.add('flip');
@@ -370,6 +507,7 @@
             }, delay);
         }
 
+        // update the board UI to match guesses
         function updateBoard() {
             for (let r = 0; r < MAX_ROWS; r++) {
                 for (let c = 0; c < WORD_LENGTH; c++) {
@@ -390,6 +528,7 @@
             }
         }
 
+        // handles keyboard input from real keyboard
         function handleKey(e) {
             if (locked) return;
             if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -420,6 +559,13 @@
             }
         }
 
+        // show or hide the play again button
+        function showPlayAgain(show) {
+            const btn = document.getElementById('playAgainBtn');
+            btn.style.display = show ? '' : 'none';
+        }
+
+        // handles submitting a guess, checks win/lose, animates, etc
         function submitGuess() {
             if (locked) return;
             let guess = guesses[currentRow].join('');
@@ -441,11 +587,13 @@
             setTimeout(() => {
                 updateKeyboardColors();
                 if (guess === ANSWER) {
-                    showMessage("Congratulations! You guessed it!", "#7fff7f");
+                    showMessage("Congrats! You guessed it!", "#7fff7f");
                     locked = true;
+                    showPlayAgain(true);
                 } else if (currentRow + 1 === MAX_ROWS) {
                     showMessage("Game Over! The word was: " + ANSWER, "#ff7f7f");
                     locked = true;
+                    showPlayAgain(true);
                 } else {
                     currentRow++;
                     currentCol = 0;
@@ -455,12 +603,14 @@
             }, WORD_LENGTH * 300 + 350);
         }
 
+        // On-screen keyboard layout, for clicking/tapping
         const KEYBOARD_LAYOUT = [
             ['Q','W','E','R','T','Y','U','I','O','P'],
             ['A','S','D','F','G','H','J','K','L'],
             ['Enter','Z','X','C','V','B','N','M','Backspace']
         ];
 
+        // builds the on-screen keyboard
         function createKeyboard() {
             const keyboardDiv = document.getElementById('keyboard');
             keyboardDiv.innerHTML = '';
@@ -483,6 +633,7 @@
             });
         }
 
+        // handles clicking/tapping the on-screen keyboard
         function handleVirtualKey(key) {
             if (locked) return;
             if (key === 'Backspace') {
@@ -502,18 +653,22 @@
             }
         }
 
+        // click anywhere to focus board/cursor
         document.body.addEventListener('click', () => {
             if (!locked) updateBoard();
         });
 
+        // checks if user is on mobile (not used but maybe useful)
         function isMobile() {
             return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent)
                 || (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
         }
 
+        // Theme switch logic for light/dark mode
         const themeSwitch = document.getElementById('themeSwitch');
         const themeSwitchLabel = document.getElementById('themeSwitchLabel');
 
+        // sets the theme, saves to localStorage
         function setTheme(mode) {
             if (mode === 'light') {
                 document.body.classList.add('light-mode');
@@ -531,16 +686,42 @@
             setTheme(themeSwitch.checked ? 'light' : 'dark');
         });
 
+        // Colorblind mode logic for accessibility
+        const colorblindSwitch = document.getElementById('colorblindSwitch');
+        const colorblindSwitchLabel = document.getElementById('colorblindSwitchLabel');
+
+        // sets colorblind mode, saves to localStorage
+        function setColorblindMode(enabled) {
+            if (enabled) {
+                document.body.classList.add('colorblind-mode');
+                colorblindSwitch.checked = true;
+            } else {
+                document.body.classList.remove('colorblind-mode');
+                colorblindSwitch.checked = false;
+            }
+            localStorage.setItem('wordle-colorblind', enabled ? '1' : '0');
+        }
+
+        colorblindSwitch.addEventListener('change', () => {
+            setColorblindMode(colorblindSwitch.checked);
+        });
+
+        // On load, set theme and colorblind mode from localStorage or default to dark
         (function() {
-            const saved = localStorage.getItem('wordle-theme');
-            if (saved === 'light' || saved === 'dark') {
-                setTheme(saved);
+            // get saved theme/colorblind from localStorage, fallback to dark
+            const savedTheme = localStorage.getItem('wordle-theme');
+            const savedColorblind = localStorage.getItem('wordle-colorblind');
+            if (savedTheme === 'light' || savedTheme === 'dark') {
+                setTheme(savedTheme);
             } else {
                 setTheme('dark');
             }
+            setColorblindMode(savedColorblind === '1');
         })();
 
+        // Only initialize game after words are loaded
         function startGame() {
+            // pick a random answer, reset everything
             ANSWER = WORDS[Math.floor(Math.random() * WORDS.length)];
             guesses = Array.from({length: MAX_ROWS}, () => Array(WORD_LENGTH).fill(''));
             currentRow = 0;
@@ -554,19 +735,27 @@
             }
             updateBoard();
             createKeyboard();
+            showPlayAgain(false);
         }
 
-        fetch("https://cors-anywhere.herokuapp.com/http://ro-premium.pylex.xyz:9761/api/wordle-words")
+        // Fetch words from backend API, then start game
+        fetch("http://ro-premium.pylex.xyz:9761/api/wordle-words")
             .then(res => res.json())
             .then(data => {
                 WORDS = data.map(w => w.toUpperCase());
                 startGame();
             })
             .catch(() => {
+                // fallback: show error if can't load words
                 document.getElementById('message').textContent = "Failed to load word list.";
             });
 
         window.addEventListener('keydown', handleKey);
+
+        // Play Again button event, resets the game
+        document.getElementById('playAgainBtn').addEventListener('click', () => {
+            startGame();
+        });
     </script>
 </body>
 </html>
