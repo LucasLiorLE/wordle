@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5 letter game because i dont wanna get striked</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #181a1b;
+            color: #fff;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .wordle-board {
+            background: rgb(21, 23, 26);
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 32px #0004;
+            padding: 2rem 1rem;
+            margin: 0 auto;
+            max-width: 420px;
+            width: 100%;
+        }
+        .wordle-row {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #3a3a3c;
+            background: #181a1b;
+            color: #fff;
+            font-size: 2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+            user-select: none;
+        }
+        .cell.cursor {
+            border-color: #fff;
+            box-shadow: 0 0 0 2px #fff4;
+        }
+        .cell .blink {
+            width: 2px;
+            height: 60%;
+            background: #fff;
+            position: absolute;
+            left: 50%;
+            top: 20%;
+            transform: translateX(-50%);
+            animation: blink 1s steps(1) infinite;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        .cell.filled {
+            animation: bounce 0.18s;
+        }
+        @keyframes bounce {
+            0% { transform: scale(1);}
+            50% { transform: scale(1.15);}
+            100% { transform: scale(1);}
+        }
+        .cell.flip {
+            animation: flip 0.5s;
+            transform-style: preserve-3d;
+        }
+        @keyframes flip {
+            0% { transform: rotateX(0);}
+            49% { transform: rotateX(90deg);}
+            51% { transform: rotateX(90deg);}
+            100% { transform: rotateX(0);}
+        }
+        .cell.correct {
+            background: #538d4e;
+            border-color: #538d4e;
+            color: #fff;
+        }
+        .cell.present {
+            background: #b59f3b;
+            border-color: #b59f3b;
+            color: #fff;
+        }
+        .cell.absent {
+            background: #3a3a3c;
+            border-color: #3a3a3c;
+            color: #888;
+        }
+        #message {
+            min-height: 24px;
+            font-size: 1.1em;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 4px #0006;
+            transition: color 0.3s, opacity 0.4s;
+            color: #fff;
+            background: rgba(30,30,40,0.92);
+            border-radius: 12px;
+            padding: 12px 28px;
+            box-shadow: 0 4px 24px #0005;
+            display: inline-block;
+            opacity: 0;
+            pointer-events: none;
+            position: fixed;
+            left: 50%;
+            top: 60px;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+        #message.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .keyboard {
+            margin: 2rem auto 0 auto;
+            max-width: 420px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .key-row {
+            display: flex;
+            justify-content: center;
+            gap: 0.4rem;
+            width: 100%;
+        }
+        .key {
+            min-width: 0;
+            flex: 1 1 0;
+            max-width: 40px;
+            height: 48px;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            background: #23232a;
+            color: #fff;
+            transition: background 0.2s, color 0.2s;
+            box-shadow: 0 2px 8px #0002;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            outline: none;
+        }
+        .key.special {
+            max-width: 64px;
+            font-size: 1rem;
+        }
+        .key:active,
+        .key.pressed {
+            background: #111117;
+        }
+        .key.correct {
+            background: #538d4e !important;
+            color: #fff !important;
+        }
+        .key.present {
+            background: #b59f3b !important;
+            color: #fff !important;
+        }
+        .key.absent {
+            background: #3a3a3c !important;
+            color: #888 !important;
+        }
+        body.light-mode {
+            background: #f7f7fa;
+            color: #181a1b;
+        }
+        body.light-mode .wordle-board {
+            background: #fff;
+            box-shadow: 0 4px 32px #0001;
+        }
+        body.light-mode .cell {
+            background: #f7f7fa;
+            color: #181a1b;
+            border-color: #bbb;
+        }
+        body.light-mode .cell.cursor {
+            border-color: #181a1b;
+            box-shadow: 0 0 0 2px #181a1b22;
+        }
+        body.light-mode .cell.correct {
+            background: #6aaa64;
+            border-color: #6aaa64;
+            color: #fff;
+        }
+        body.light-mode .cell.present {
+            background: #c9b458;
+            border-color: #c9b458;
+            color: #fff;
+        }
+        body.light-mode .cell.absent {
+            background: #d3d6da;
+            border-color: #d3d6da;
+            color: #888;
+        }
+        body.light-mode #message {
+            background: rgba(255,255,255,0.92);
+            color: #181a1b;
+            box-shadow: 0 4px 24px #0002;
+        }
+        body.light-mode .key {
+            background: #e3e3e7;
+            color: #181a1b;
+            box-shadow: 0 2px 8px #0001;
+        }
+        body.light-mode .key:active,
+        body.light-mode .key.pressed {
+            background: #bbb;
+        }
+        body.light-mode .key.correct {
+            background: #6aaa64 !important;
+            color: #fff !important;
+        }
+        body.light-mode .key.present {
+            background: #c9b458 !important;
+            color: #fff !important;
+        }
+        body.light-mode .key.absent {
+            background: #d3d6da !important;
+            color: #888 !important;
+        }
+        @media (max-width: 600px) {
+            .wordle-board {
+                max-width: 98vw;
+                padding: 1rem 0.2rem;
+            }
+            .keyboard {
+                max-width: 98vw;
+            }
+            .cell {
+                width: 12vw;
+                height: 12vw;
+                max-width: 48px;
+                max-height: 48px;
+                font-size: 1.1em;
+            }
+            .key {
+                max-width: 9vw;
+                height: 40px;
+                font-size: 1em;
+            }
+            .key.special {
+                max-width: 16vw;
+                font-size: 0.95em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <h1 class="text-center mb-4 fw-bold display-6">5 letter game because i dont wanna get striked</h1>
+        <div class="wordle-board shadow-sm" id="board"></div>
+        <div id="message"></div>
+        <div id="keyboard" class="keyboard"></div>
+        <div class="d-flex justify-content-center mt-3">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="themeSwitch">
+                <label class="form-check-label" for="themeSwitch" id="themeSwitchLabel">Light Mode</label>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let WORDS = [];
+        let ANSWER = "";
+        const MAX_ROWS = 6;
+        const WORD_LENGTH = 5;
+
+        let currentRow = 0;
+        let currentCol = 0;
+        let board = [];
+        let guesses = Array.from({length: MAX_ROWS}, () => Array(WORD_LENGTH).fill(''));
+        let locked = false;
+
+        // Initialize board
+        const boardDiv = document.getElementById('board');
+        for (let r = 0; r < MAX_ROWS; r++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'wordle-row';
+            let row = [];
+            for (let c = 0; c < WORD_LENGTH; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                rowDiv.appendChild(cell);
+                row.push(cell);
+            }
+            boardDiv.appendChild(rowDiv);
+            board.push(row);
+        }
+
+        let messageTimeout = null;
+        function showMessage(msg, color = "#fff") {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = msg;
+            msgDiv.style.color = color;
+            msgDiv.classList.add('visible');
+            if (messageTimeout) clearTimeout(messageTimeout);
+            if (msg) {
+                messageTimeout = setTimeout(() => {
+                    msgDiv.classList.remove('visible');
+                }, 1000);
+            } else {
+                msgDiv.classList.remove('visible');
+            }
+        }
+
+        function checkGuess(guess) {
+            let result = Array(WORD_LENGTH).fill('absent');
+            let answerArr = ANSWER.split('');
+            let guessArr = guess.split('');
+
+            for (let i = 0; i < WORD_LENGTH; i++) {
+                if (guessArr[i] === answerArr[i]) {
+                    result[i] = 'correct';
+                    answerArr[i] = null; 
+                    guessArr[i] = null;
+                }
+            }
+            for (let i = 0; i < WORD_LENGTH; i++) {
+                if (guessArr[i] && answerArr.includes(guessArr[i])) {
+                    result[i] = 'present';
+                    answerArr[answerArr.indexOf(guessArr[i])] = null;
+                }
+            }
+            return result;
+        }
+
+        const keyStates = {};
+
+        function updateKeyboardColors() {
+            document.querySelectorAll('.key').forEach(btn => {
+                const key = btn.getAttribute('data-key').toUpperCase();
+                btn.classList.remove('correct', 'present', 'absent');
+                if (keyStates[key]) {
+                    btn.classList.add(keyStates[key]);
+                }
+            });
+        }
+
+        function updateKeyState(letter, result) {
+            const priority = { 'correct': 3, 'present': 2, 'absent': 1 };
+            if (!keyStates[letter] || priority[result] > priority[keyStates[letter]]) {
+                keyStates[letter] = result;
+            }
+        }
+
+        function animateCell(cell, delay, resultClass, letter) {
+            setTimeout(() => {
+                cell.classList.add('flip');
+                cell.textContent = '';
+                setTimeout(() => {
+                    cell.classList.remove('flip');
+                    cell.classList.add(resultClass);
+                    cell.textContent = letter;
+                }, 250);
+            }, delay);
+        }
+
+        function updateBoard() {
+            for (let r = 0; r < MAX_ROWS; r++) {
+                for (let c = 0; c < WORD_LENGTH; c++) {
+                    const cell = board[r][c];
+                    cell.textContent = guesses[r][c] || '';
+                    cell.classList.remove('cursor');
+                    let blink = cell.querySelector('.blink');
+                    if (blink) cell.removeChild(blink);
+                    if (r === currentRow && c === currentCol && !locked) {
+                        cell.classList.add('cursor');
+                        if (!cell.textContent) {
+                            let cursorDiv = document.createElement('div');
+                            cursorDiv.className = 'blink';
+                            cell.appendChild(cursorDiv);
+                        }
+                    }
+                }
+            }
+        }
+
+        function handleKey(e) {
+            if (locked) return;
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            if (e.key === 'Backspace') {
+                if (currentCol > 0) {
+                    currentCol--;
+                    guesses[currentRow][currentCol] = '';
+                    updateBoard();
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (currentCol > 0) {
+                    currentCol--;
+                    updateBoard();
+                }
+            } else if (e.key === 'ArrowRight') {
+                if (currentCol < WORD_LENGTH && guesses[currentRow][currentCol]) {
+                    currentCol++;
+                    updateBoard();
+                }
+            } else if (e.key === 'Enter') {
+                submitGuess();
+            } else if (/^[a-zA-Z]$/.test(e.key)) {
+                if (currentCol < WORD_LENGTH) {
+                    guesses[currentRow][currentCol] = e.key.toUpperCase();
+                    currentCol++;
+                    updateBoard();
+                }
+            }
+        }
+
+        function submitGuess() {
+            if (locked) return;
+            let guess = guesses[currentRow].join('');
+            if (guess.length !== WORD_LENGTH) {
+                showMessage("Enter a 5-letter word.", "#ffb347");
+                return;
+            }
+            if (!WORDS.includes(guess)) {
+                showMessage("Not in word list.", "#ffb347");
+                return;
+            }
+            locked = true;
+            showMessage('');
+            let result = checkGuess(guess);
+            for (let i = 0; i < WORD_LENGTH; i++) {
+                animateCell(board[currentRow][i], i * 300, result[i], guesses[currentRow][i]);
+                updateKeyState(guesses[currentRow][i], result[i]);
+            }
+            setTimeout(() => {
+                updateKeyboardColors();
+                if (guess === ANSWER) {
+                    showMessage("Congratulations! You guessed it!", "#7fff7f");
+                    locked = true;
+                } else if (currentRow + 1 === MAX_ROWS) {
+                    showMessage("Game Over! The word was: " + ANSWER, "#ff7f7f");
+                    locked = true;
+                } else {
+                    currentRow++;
+                    currentCol = 0;
+                    locked = false;
+                    updateBoard();
+                }
+            }, WORD_LENGTH * 300 + 350);
+        }
+
+        const KEYBOARD_LAYOUT = [
+            ['Q','W','E','R','T','Y','U','I','O','P'],
+            ['A','S','D','F','G','H','J','K','L'],
+            ['Enter','Z','X','C','V','B','N','M','Backspace']
+        ];
+
+        function createKeyboard() {
+            const keyboardDiv = document.getElementById('keyboard');
+            keyboardDiv.innerHTML = '';
+            KEYBOARD_LAYOUT.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'key-row';
+                row.forEach(key => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'key btn btn-dark' + (key === 'Enter' || key === 'Backspace' ? ' special' : '');
+                    btn.textContent = key === 'Backspace' ? '⌫' : key;
+                    btn.setAttribute('data-key', key);
+                    btn.addEventListener('mousedown', () => btn.classList.add('pressed'));
+                    btn.addEventListener('mouseup', () => btn.classList.remove('pressed'));
+                    btn.addEventListener('mouseleave', () => btn.classList.remove('pressed'));
+                    btn.addEventListener('click', () => handleVirtualKey(key));
+                    rowDiv.appendChild(btn);
+                });
+                keyboardDiv.appendChild(rowDiv);
+            });
+        }
+
+        function handleVirtualKey(key) {
+            if (locked) return;
+            if (key === 'Backspace') {
+                if (currentCol > 0) {
+                    currentCol--;
+                    guesses[currentRow][currentCol] = '';
+                    updateBoard();
+                }
+            } else if (key === 'Enter') {
+                submitGuess();
+            } else if (/^[A-Z]$/.test(key)) {
+                if (currentCol < WORD_LENGTH) {
+                    guesses[currentRow][currentCol] = key;
+                    currentCol++;
+                    updateBoard();
+                }
+            }
+        }
+
+        document.body.addEventListener('click', () => {
+            if (!locked) updateBoard();
+        });
+
+        function isMobile() {
+            return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent)
+                || (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+        }
+
+        const themeSwitch = document.getElementById('themeSwitch');
+        const themeSwitchLabel = document.getElementById('themeSwitchLabel');
+
+        function setTheme(mode) {
+            if (mode === 'light') {
+                document.body.classList.add('light-mode');
+                themeSwitch.checked = true;
+                themeSwitchLabel.textContent = 'Dark Mode';
+            } else {
+                document.body.classList.remove('light-mode');
+                themeSwitch.checked = false;
+                themeSwitchLabel.textContent = 'Light Mode';
+            }
+            localStorage.setItem('wordle-theme', mode);
+        }
+
+        themeSwitch.addEventListener('change', () => {
+            setTheme(themeSwitch.checked ? 'light' : 'dark');
+        });
+
+        (function() {
+            const saved = localStorage.getItem('wordle-theme');
+            if (saved === 'light' || saved === 'dark') {
+                setTheme(saved);
+            } else {
+                setTheme('dark');
+            }
+        })();
+
+        function startGame() {
+            ANSWER = WORDS[Math.floor(Math.random() * WORDS.length)];
+            guesses = Array.from({length: MAX_ROWS}, () => Array(WORD_LENGTH).fill(''));
+            currentRow = 0;
+            currentCol = 0;
+            locked = false;
+            for (let r = 0; r < MAX_ROWS; r++) {
+                for (let c = 0; c < WORD_LENGTH; c++) {
+                    board[r][c].className = 'cell';
+                    board[r][c].textContent = '';
+                }
+            }
+            updateBoard();
+            createKeyboard();
+        }
+
+        fetch("http://ro-premium.pylex.xyz:9761/api/wordle-words")
+            .then(res => res.json())
+            .then(data => {
+                WORDS = data.map(w => w.toUpperCase());
+                startGame();
+            })
+            .catch(() => {
+                document.getElementById('message').textContent = "Failed to load word list.";
+            });
+
+        window.addEventListener('keydown', handleKey);
+    </script>
+</body>
+</html>
