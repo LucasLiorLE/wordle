@@ -738,11 +738,19 @@
             showPlayAgain(false);
         }
 
-        // Fetch words from backend API, then start game
-        fetch("http://ro-premium.pylex.xyz:9761/api/wordle-words")
+        // Fetch words from backend API using allorigins, then start game
+        fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("http://ro-premium.pylex.xyz:9761/api/wordle-words"))
             .then(res => res.json())
             .then(data => {
-                WORDS = data.map(w => w.toUpperCase());
+                // allorigins returns {contents: "...json..."}
+                let wordList = [];
+                try {
+                    wordList = JSON.parse(data.contents);
+                } catch (e) {
+                    document.getElementById('message').textContent = "Failed to parse word list.";
+                    return;
+                }
+                WORDS = wordList.map(w => w.toUpperCase());
                 startGame();
             })
             .catch(() => {
