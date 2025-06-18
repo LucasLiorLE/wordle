@@ -1,1 +1,1 @@
-To view all the added words, you can either open http://ro-premium.pylex.xyz:9761/api/wordle-words in your browser or make an API call.
+To view all the added words, you can either open http://eu-ro-01.wisp.uno:9761/api/wordle-words in your browser or make an API call.
