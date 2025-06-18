@@ -724,7 +724,7 @@
         }
 
         // Fetch words from backend API using allorigins, then start game
-        fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("http://ro-premium.pylex.xyz:9761/api/wordle-words"))
+        fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("http://eu-ro-01.wisp.uno:9761/api/wordle-words"))
             .then(res => res.json())
             .then(data => {
                 // allorigins returns {contents: "...json..."}
